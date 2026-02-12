@@ -112,34 +112,12 @@ widget.saveData();
 console.log(widget.friends);
 ```
 
-## Status Indicators
-
-The widget displays visual status indicators for each friend:
-
-- **🟢 Green (Grown)**: Contacted within the last 7 days
-- **🟡 Orange (Growing)**: Contacted within the last 30 days
-- **🔴 Red (Sprout)**: Not contacted in over 30 days
-
-## Data Format
-
-Friends are stored in the following format:
-
-```javascript
-{
-    id: 1645123456789,           // Unique timestamp ID
-    name: "John Doe",            // Friend's name
-    lastContact: "2026-02-01",   // Last contact date (YYYY-MM-DD)
-    contactType: "phone",        // Type: phone, email, facebook, discord
-    contact: "+1234567890"       // Contact information
-}
-```
-
 ## Contact Types
 
 - **Phone**: Creates clickable `tel:` links
 - **Email**: Creates clickable `mailto:` links  
 - **Facebook**: Creates links to Messenger or Facebook profiles
-- **Discord**: Displays username and copies to clipboard when clicked
+- **Discord**: Advanced. Requires link to the chat with the contact, of the format `https://discord.com/channels/@me/<CHANNEL CODE>`
 
 ## Browser Support
 
@@ -149,6 +127,15 @@ Friends are stored in the following format:
 ## License
 
 MIT License - see package.json for details
+
+## Attributions
+
+### Icons
+The following animated icons are used in this application and are created by Freepik from Flaticon:
+
+- [Watering animated icons created by Freepik - Flaticon](https://www.flaticon.com/free-animated-icons/watering)
+- [Leaves animated icons created by Freepik - Flaticon](https://www.flaticon.com/free-animated-icons/leaves)  
+- [Agriculture animated icons created by Freepik - Flaticon](https://www.flaticon.com/free-animated-icons/agriculture)
 
 ## Contributing
 

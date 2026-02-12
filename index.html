@@ -3,72 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friend Contact Manager</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Water Your Friends</title>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Friend Contact Manager</h1>
-            <p>Keep track of your friends and when you last contacted them</p>
-        </header>
-
-        <main>
-            <!-- Control Panel -->
-            <div class="control-panel">
-                <button id="add-friend-btn" class="btn btn-primary">Add Friend</button>
-                <button id="save-btn" class="btn btn-success">Save Data</button>
-                <button id="load-btn" class="btn btn-info">Load Data</button>
-                <input type="file" id="file-input" accept=".json" style="display: none;">
-            </div>
-
-            <!-- Add/Edit Friend Form -->
-            <div id="friend-form" class="form-container hidden">
-                <h3 id="form-title">Add New Friend</h3>
-                <form id="friend-form-element">
-                    <div class="form-group">
-                        <label for="friend-name">Friend Name:</label>
-                        <input type="text" id="friend-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="last-contact">Last Contact Date:</label>
-                        <input type="date" id="last-contact" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-type">Contact Type:</label>
-                        <select id="contact-type" required>
-                            <option value="">Select contact type</option>
-                            <option value="phone">Phone</option>
-                            <option value="facebook">Facebook Messenger</option>
-                            <option value="email">Email</option>
-                            <option value="discord">Discord</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="contact-info">Contact Info:</label>
-                        <input type="text" id="contact-info" placeholder="Enter contact details" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Friend</button>
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Friends List -->
-            <div class="friends-list">
-                <h3>Your Friends</h3>
-                <div id="friends-container">
-                    <p class="empty-state">No friends added yet. Click "Add Friend" to get started!</p>
-                </div>
-            </div>
-        </main>
-    </div>
-    <div class="acknowledge">
-        <button id="ack-btn" class="btn btn-secondary" onclick="window.open('ack.html', '_blank')">Acknowledgements</button>
-    </div>
-
-    <script src="friend-form.js"></script>
-    <script src="script.js"></script>
+    <!-- The widget will be auto-initialized here -->
+    <div id="water-your-friends-widget"></div>
+    
+    <!-- Load the self-contained widget -->
+    <script src="water-your-friends-widget.js"></script>
 </body>
 </html>

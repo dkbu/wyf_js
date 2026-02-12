@@ -490,11 +490,11 @@ class WaterYourFriends {
 
     getContactStatusImage(daysSince) {
         if (daysSince <= 7) {
-            return 'grown.svg';     // Contacted within last week
+            return 'grown.png';     // Contacted within last week
         } else if (daysSince <= 30) {
-            return 'growing.svg';   // Contacted within last month
+            return 'growing.png';   // Contacted within last month
         } else {
-            return 'sprout.svg';    // Not contacted in over a month
+            return 'sprout.png';    // Not contacted in over a month
         }
     }
 
