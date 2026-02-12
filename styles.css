@@ -217,6 +217,17 @@ header p {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    gap: 15px;
+}
+
+/* Contact Status Image */
+.contact-status-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
 }
 
 .friend-name {
@@ -267,6 +278,61 @@ header p {
     transform: translateY(-1px);
 }
 
+/* Acknowledgements Page */
+.acknowledgements-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.ack-section {
+    margin-bottom: 30px;
+}
+
+.ack-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.attribution-links {
+    margin-left: 20px;
+}
+
+.attribution-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    border-radius: 0 4px 4px 0;
+}
+
+.attribution-item a {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.attribution-item a:hover {
+    text-decoration: underline;
+}
+
+.ack-section ul {
+    margin-left: 20px;
+}
+
+.ack-section ul li {
+    margin-bottom: 5px;
+    color: #5a6c7d;
+}
+
+.back-button-container {
+    margin-top: 30px;
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+}
+
 /* Utility Classes */
 .hidden {
     display: none;
@@ -274,6 +340,10 @@ header p {
 
 .text-center {
     text-align: center;
+}
+
+.acknowledge {
+    font-size: smaller;
 }
 
 /* Responsive Design */

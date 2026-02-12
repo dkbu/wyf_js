@@ -82,11 +82,15 @@ class FriendManager {
         
         // Handle different contact types
         const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || 'phone');
-        // const contactTypeLabel = this.getContactTypeLabel(friend.contactType || 'phone');
+        const contactTypeLabel = this.getContactTypeLabel(friend.contactType || 'phone');
+        
+        // Get the appropriate image based on last contact
+        const statusImage = this.getContactStatusImage(daysSince);
 
         return `
             <div class="friend-card">
                 <div class="friend-header">
+                    <img src="assets/${statusImage}" alt="Contact Status" class="contact-status-img">
                     <div class="friend-name">${this.escapeHtml(friend.name)}</div>
                     <div class="friend-actions">
                         <button class="btn btn-small btn-warning" onclick="friendManager.updateCallTime(${friend.id})">
@@ -136,6 +140,16 @@ class FriendManager {
             discord: 'Discord'
         };
         return labels[contactType] || 'Unknown';
+    }
+
+    getContactStatusImage(daysSince) {
+        if (daysSince <= 7) {
+            return 'grown.png';     // Contacted within last week
+        } else if (daysSince <= 30) {
+            return 'growing.png';   // Contacted within last month
+        } else {
+            return 'sprout.png';    // Not contacted in over a month
+        }
     }
 
     getDaysSinceContact(contactDate) {
