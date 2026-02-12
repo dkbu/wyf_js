@@ -44,7 +44,6 @@ class WaterYourFriends {
                         <button class="wyf-add-friend-btn wyf-btn wyf-btn-primary">Add Friend</button>
                         <button class="wyf-save-btn wyf-btn wyf-btn-success">Save Data</button>
                         <button class="wyf-load-btn wyf-btn wyf-btn-info">Load Data</button>
-                        <button class="wyf-ack-btn wyf-btn wyf-btn-secondary">Acknowledgements</button>
                         <input type="file" class="wyf-file-input" accept=".json" style="display: none;">
                     </div>
 
@@ -358,7 +357,6 @@ class WaterYourFriends {
         widget.querySelector('.wyf-save-btn').addEventListener('click', () => this.saveData());
         widget.querySelector('.wyf-load-btn').addEventListener('click', () => this.loadData());
         widget.querySelector('.wyf-file-input').addEventListener('change', (e) => this.handleFileLoad(e));
-        widget.querySelector('.wyf-ack-btn').addEventListener('click', () => this.showAcknowledgements());
     }
     
     showAcknowledgements() {
@@ -413,7 +411,7 @@ class WaterYourFriends {
         const sortedFriends = [...this.friends].sort((a, b) => {
             const dateA = new Date(a.lastContact);
             const dateB = new Date(b.lastContact);
-            return dateB.getTime() - dateA.getTime();
+            return dateA.getTime() - dateB.getTime();
         });
         
         const friendsHTML = sortedFriends.map(friend => this.createFriendCard(friend)).join('');
@@ -427,7 +425,6 @@ class WaterYourFriends {
         
         // Handle different contact types
         const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || 'phone');
-        const contactTypeLabel = this.getContactTypeLabel(friend.contactType || 'phone');
         
         // Get the appropriate image based on last contact
         const statusImage = this.getContactStatusImage(daysSince);
@@ -452,7 +449,6 @@ class WaterYourFriends {
                 </div>
                 <div class="wyf-friend-info">
                     <p><strong>Last Contact:</strong> ${formattedDate} (${daysSince} days ago)</p>
-                    <p><strong>Contact Type:</strong> ${contactTypeLabel}</p>
                     <p><strong>Contact:</strong> ${contactDisplay}</p>
                 </div>
             </div>
@@ -460,21 +456,23 @@ class WaterYourFriends {
     }
 
     formatContactLink(contact, contactType) {
+        const contactTxt = this.escapeHtml(contact);
+        const contactTypeLabel = this.getContactTypeLabel(contactType);
         switch (contactType) {
             case 'phone':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('tel:${contact}', '_self')">${this.escapeHtml(contact)}</button>`;
+                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('tel:${contactTxt}', '_self')">${contactTypeLabel}</button>`;
             case 'email':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('mailto:${contact}', '_self')">${this.escapeHtml(contact)}</button>`;
+                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('mailto:${contactTxt}', '_self')">${contactTypeLabel}</button>`;
             case 'facebook':
                 if (contact.startsWith('http')) {
-                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('${contact}', '_blank')">${this.escapeHtml(contact)}</button>`;
+                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
                 } else {
-                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('https://m.me/${contact}', '_blank')">${this.escapeHtml(contact)}</button>`;
+                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('https://m.me/${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
                 }
             case 'discord':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn" onclick="navigator.clipboard.writeText('${contact}').then(() => alert('Discord username copied to clipboard!'))">${this.escapeHtml(contact)}</button>`;
+                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn" onclick="onclick="window.open('${contactTxt}')">${contactTypeLabel}</button>`;
             default:
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn">${this.escapeHtml(contact)}</button>`;
+                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn" onclick="window.open('${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
         }
     }
 
