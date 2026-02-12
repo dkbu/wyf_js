@@ -1,0 +1,49 @@
+{
+  "name": "water-your-friends",
+  "version": "1.0.0",
+  "description": "A reusable JavaScript widget for managing friend contacts and tracking communication frequency",
+  "main": "water-your-friends-widget.js",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "widget",
+    "friends",
+    "contacts",
+    "contact-manager",
+    "communication",
+    "relationship-tracker",
+    "vanilla-js",
+    "html5",
+    "css3",
+    "javascript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dkbu/wyf_js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dkbu/wyf_js/issues"
+  },
+  "homepage": "https://github.com/dkbu/wyf_js#readme",
+  "files": [
+    "water-your-friends-widget.js",
+    "index.html",
+    "ack.html",
+    "script.js",
+    "friend-form.js",
+    "styles.css",
+    "assets/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}

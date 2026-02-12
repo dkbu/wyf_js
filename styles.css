@@ -369,3 +369,14 @@ header p {
         display: inline-block;
     }
 }
+
+.code {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    color: #2c3e50;
+    margin-top: 10px;
+}
