@@ -64,7 +64,14 @@ class FriendManager {
             return;
         }
 
-        const friendsHTML = this.friends.map(friend => this.createFriendCard(friend)).join('');
+        // Sort friends by last contact date in descending order (most recent first)
+        const sortedFriends = [...this.friends].sort((a, b) => {
+            const dateA = new Date(a.lastContact);
+            const dateB = new Date(b.lastContact);
+            return dateA.getTime() - dateB.getTime(); // Ascending order (oldest first)
+        });
+        
+        const friendsHTML = sortedFriends.map(friend => this.createFriendCard(friend)).join('');
         container.innerHTML = friendsHTML;
     }
 
@@ -75,7 +82,7 @@ class FriendManager {
         
         // Handle different contact types
         const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || 'phone');
-        const contactTypeLabel = this.getContactTypeLabel(friend.contactType || 'phone');
+        // const contactTypeLabel = this.getContactTypeLabel(friend.contactType || 'phone');
 
         return `
             <div class="friend-card">
@@ -95,7 +102,6 @@ class FriendManager {
                 </div>
                 <div class="friend-info">
                     <p><strong>Last Contact:</strong> ${formattedDate} (${daysSince} days ago)</p>
-                    <p><strong>Contact Type:</strong> ${contactTypeLabel}</p>
                     <p><strong>Contact:</strong> ${contactDisplay}</p>
                 </div>
             </div>
@@ -103,21 +109,22 @@ class FriendManager {
     }
 
     formatContactLink(contact, contactType) {
+        const contactTxt = this.escapeHtml(contact);
         switch (contactType) {
             case 'phone':
-                return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('tel:${contact}', '_self')">${this.escapeHtml(contact)}</button>`;
+                return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('tel:${contactTxt}', '_self')">Phone</button>`;
             case 'email':
-                return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('mailto:${contact}', '_self')">${this.escapeHtml(contact)}</button>`;
+                return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('mailto:${contactTxt}', '_self')">Email</button>`;
             case 'facebook':
                 if (contact.startsWith('http')) {
-                    return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('${contact}', '_blank')">${this.escapeHtml(contact)}</button>`;
+                    return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('${contactTxt}', '_blank')">Facebook Messenger</button>`;
                 } else {
-                    return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('https://m.me/${contact}', '_blank')">${this.escapeHtml(contact)}</button>`;
+                    return `<button class="btn btn-small btn-info contact-btn" onclick="window.open('https://m.me/${contactTxt}', '_blank')">Facebook Messenger</button>`;
                 }
             case 'discord':
-                return `<button class="btn btn-small btn-secondary contact-btn" onclick="window.open('${this.escapeHtml(contact)}', '_blank')">Discord</button>`;
+                return `<button class="btn btn-small btn-secondary contact-btn" onclick="window.open('${contactTxt}', '_blank')">Discord</button>`;
             default:
-                return `<button class="btn btn-small btn-secondary contact-btn">${this.escapeHtml(contact)}</button>`;
+                return `<button class="btn btn-small btn-secondary contact-btn">URL</button>`;
         }
     }
 
