@@ -9,6 +9,7 @@ class WaterYourFriends {
         this.options = {
             title: options.title || 'Friend Contact Manager',
             subtitle: options.subtitle || 'Keep track of your friends and when you last contacted them',
+            imagePath: options.imagePath || 'assets/',
             ...options
         };
         
@@ -433,7 +434,7 @@ class WaterYourFriends {
         return `
             <div class="wyf-friend-card">
                 <div class="wyf-friend-header">
-                    <img src="assets/${statusImage}" alt="Contact Status" class="wyf-contact-status-img">
+                    <img src="${this.options.imagePath}${statusImage}" alt="Contact Status" class="wyf-contact-status-img">
                     <div class="wyf-friend-name">${this.escapeHtml(friend.name)}</div>
                     <div class="wyf-friend-actions">
                         <button class="wyf-btn wyf-btn-small wyf-btn-warning" onclick="window.wyfWidgets['${widgetId}'].updateCallTime(${friend.id})">
