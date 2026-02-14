@@ -6,23 +6,27 @@ class WaterYourFriends {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.container = document.getElementById(containerId);
-        this.options = {
-            title: options.title || 'Friend Contact Manager',
-            subtitle: options.subtitle || 'Keep track of your friends and when you last contacted them',
-            imagePath: options.imagePath || 'assets/',
-            ...options
-        };
         
+        // Only set options if they haven't been set before (prevents recreation issues)
+        if (!this.options) {
+            this.options = {
+                title: 'Friend Contact Manager',
+                subtitle: 'Keep track of your friends and when you last contacted them',
+                imagePath: 'assets/',
+                ...options
+            };
+        }
+
         if (!this.container) {
             console.error(`Container with id '${containerId}' not found`);
             return;
         }
-        
+
         this.friends = [];
         this.friendForm = null;
         this.init();
     }
-    
+
     init() {
         this.render();
         this.bindEvents();
@@ -30,7 +34,7 @@ class WaterYourFriends {
         // Initialize form handler after DOM is ready
         this.friendForm = new FriendFormWidget(this);
     }
-    
+
     render() {
         this.container.innerHTML = `
             <div class="wyf-widget">
@@ -91,20 +95,20 @@ class WaterYourFriends {
                 </main>
             </div>
         `;
-        
+
         // Add widget-specific styles
         this.addStyles();
     }
-    
+
     addStyles() {
         if (document.getElementById('wyf-widget-styles')) return; // Styles already added
-        
+
         const styleSheet = document.createElement('style');
         styleSheet.id = 'wyf-widget-styles';
         styleSheet.textContent = this.getWidgetCSS();
         document.head.appendChild(styleSheet);
     }
-    
+
     getWidgetCSS() {
         return `
         .wyf-widget {
@@ -350,20 +354,20 @@ class WaterYourFriends {
         }
         `;
     }
-    
+
     bindEvents() {
         const widget = this.container.querySelector('.wyf-widget');
-        
+
         // Save and load events
         widget.querySelector('.wyf-save-btn').addEventListener('click', () => this.saveData());
         widget.querySelector('.wyf-load-btn').addEventListener('click', () => this.loadData());
         widget.querySelector('.wyf-file-input').addEventListener('change', (e) => this.handleFileLoad(e));
     }
-    
+
     showAcknowledgements() {
         window.open('ack.html', '_blank');
     }
-    
+
     addFriend(friendData) {
         this.friends.push(friendData);
         this.renderFriends();
@@ -402,7 +406,7 @@ class WaterYourFriends {
 
     renderFriends() {
         const container = this.container.querySelector('.wyf-friends-container');
-        
+
         if (this.friends.length === 0) {
             container.innerHTML = '<p class="wyf-empty-state">No friends added yet. Click "Add Friend" to get started!</p>';
             return;
@@ -414,22 +418,44 @@ class WaterYourFriends {
             const dateB = new Date(b.lastContact);
             return dateA.getTime() - dateB.getTime();
         });
-        
+
         const friendsHTML = sortedFriends.map(friend => this.createFriendCard(friend)).join('');
         container.innerHTML = friendsHTML;
+        
+        // Bind event listeners for friend action buttons
+        this.bindFriendActionEvents(sortedFriends);
+    }
+
+    bindFriendActionEvents(friends) {
+        friends.forEach(friend => {
+            const updateBtn = document.getElementById(`wyf-update-${friend.id}`);
+            const editBtn = document.getElementById(`wyf-edit-${friend.id}`);
+            const removeBtn = document.getElementById(`wyf-remove-${friend.id}`);
+
+            if (updateBtn) {
+                updateBtn.addEventListener('click', () => this.updateCallTime(friend.id));
+            }
+
+            if (editBtn) {
+                editBtn.addEventListener('click', () => this.editFriend(friend.id));
+            }
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => this.removeFriend(friend.id));
+            }
+        });
     }
 
     createFriendCard(friend) {
         const lastContactDate = new Date(friend.lastContact);
         const formattedDate = lastContactDate.toLocaleDateString();
         const daysSince = this.getDaysSinceContact(lastContactDate);
-        
+
         // Handle different contact types
         const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || 'phone');
-        
+
         // Get the appropriate image based on last contact
         const statusImage = this.getContactStatusImage(daysSince);
-        const widgetId = this.containerId;
 
         return `
             <div class="wyf-friend-card">
@@ -437,13 +463,13 @@ class WaterYourFriends {
                     <img src="${this.options.imagePath}${statusImage}" alt="Contact Status" class="wyf-contact-status-img">
                     <div class="wyf-friend-name">${this.escapeHtml(friend.name)}</div>
                     <div class="wyf-friend-actions">
-                        <button class="wyf-btn wyf-btn-small wyf-btn-warning" onclick="window.wyfWidgets['${widgetId}'].updateCallTime(${friend.id})">
+                        <button id="wyf-update-${friend.id}" class="wyf-btn wyf-btn-small wyf-btn-warning">
                             Update Call Time
                         </button>
-                        <button class="wyf-btn wyf-btn-small wyf-btn-info" onclick="window.wyfWidgets['${widgetId}'].editFriend(${friend.id})">
+                        <button id="wyf-edit-${friend.id}" class="wyf-btn wyf-btn-small wyf-btn-info">
                             Edit
                         </button>
-                        <button class="wyf-btn wyf-btn-small wyf-btn-danger" onclick="window.wyfWidgets['${widgetId}'].removeFriend(${friend.id})">
+                        <button id="wyf-remove-${friend.id}" class="wyf-btn wyf-btn-small wyf-btn-danger">
                             Remove
                         </button>
                     </div>
@@ -525,7 +551,7 @@ class WaterYourFriends {
         const jsonString = JSON.stringify(dataToSave, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = `friends-data-${new Date().toISOString().split('T')[0]}.json`;
@@ -533,7 +559,7 @@ class WaterYourFriends {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         alert('Friends data saved successfully!');
     }
 
@@ -554,7 +580,7 @@ class WaterYourFriends {
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                
+
                 // Validate data structure
                 if (data.friends && Array.isArray(data.friends)) {
                     // Add backward compatibility - set default contactType for old data
@@ -570,31 +596,31 @@ class WaterYourFriends {
                             }
                         }
                     });
-                    
+
                     // Check if we should replace or merge data
                     if (this.friends.length > 0) {
                         const shouldReplace = confirm(
                             'You already have friends data. Do you want to replace it with the loaded data? ' +
                             'Click Cancel to merge the data instead.'
                         );
-                        
+
                         if (shouldReplace) {
                             this.friends = data.friends;
                         } else {
                             // Merge data, avoiding duplicates based on name
                             const existingNames = new Set(this.friends.map(f => f.name.toLowerCase()));
-                            const newFriends = data.friends.filter(f => 
+                            const newFriends = data.friends.filter(f =>
                                 !existingNames.has(f.name.toLowerCase())
                             );
-                            
+
                             // Update IDs to avoid conflicts
                             const maxId = this.friends.length > 0 ? Math.max(...this.friends.map(f => f.id)) : 0;
                             newFriends.forEach((friend, index) => {
                                 friend.id = maxId + index + 1;
                             });
-                            
+
                             this.friends.push(...newFriends);
-                            
+
                             if (newFriends.length === 0) {
                                 alert('No new friends were added (all friends from the file already exist)');
                             } else {
@@ -604,7 +630,7 @@ class WaterYourFriends {
                     } else {
                         this.friends = data.friends;
                     }
-                    
+
                     this.renderFriends();
                     alert('Friends data loaded successfully!');
                 } else {
@@ -614,9 +640,9 @@ class WaterYourFriends {
                 alert('Error reading file: ' + error.message);
             }
         };
-        
+
         reader.readAsText(file);
-        
+
         // Reset file input
         event.target.value = '';
     }
@@ -636,12 +662,12 @@ class FriendFormWidget {
 
     bindEvents() {
         const widget = this.wyfWidget.container.querySelector('.wyf-widget');
-        
+
         // Form events
         widget.querySelector('.wyf-add-friend-btn').addEventListener('click', () => this.showForm());
         widget.querySelector('.wyf-friend-form-element').addEventListener('submit', (e) => this.handleFormSubmit(e));
         widget.querySelector('.wyf-cancel-btn').addEventListener('click', () => this.hideForm());
-        
+
         // Contact type change event for placeholder updates
         widget.querySelector('.wyf-contact-type').addEventListener('change', (e) => this.updateContactPlaceholder(e.target.value));
     }
@@ -675,7 +701,7 @@ class FriendFormWidget {
 
         // Update placeholder based on selected contact type
         this.updateContactPlaceholder(contactTypeSelect.value);
-        
+
         form.classList.remove('wyf-hidden');
         nameInput.focus();
     }
@@ -701,7 +727,7 @@ class FriendFormWidget {
 
     handleFormSubmit(e) {
         e.preventDefault();
-        
+
         const widget = this.wyfWidget.container.querySelector('.wyf-widget');
         const name = widget.querySelector('.wyf-friend-name').value.trim();
         const lastContact = widget.querySelector('.wyf-last-contact').value;
@@ -748,7 +774,7 @@ class FriendFormWidget {
                     return false;
                 }
                 break;
-                
+
             case 'email':
                 // Basic email validation
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -757,7 +783,7 @@ class FriendFormWidget {
                     return false;
                 }
                 break;
-                
+
             case 'facebook':
                 // Accept URLs or usernames
                 if (!contact.includes('facebook.com') && !contact.includes('m.me') && contact.length < 3) {
@@ -765,7 +791,7 @@ class FriendFormWidget {
                     return false;
                 }
                 break;
-                
+
             case 'discord':
                 // Accept Discord usernames or user IDs
                 if (contact.length < 3) {
@@ -788,16 +814,24 @@ if (!window.wyfWidgets) {
 }
 
 // Auto-initialize widget if container exists
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Register widget creation function globally
-    window.createWaterYourFriendsWidget = function(containerId, options = {}) {
+    window.createWaterYourFriendsWidget = function (containerId, options = {}) {
+        // Check if widget already exists for this container
+        if (window.wyfWidgets[containerId]) {
+            console.log(`Widget already exists for container '${containerId}', applying existing options to new widget`);
+            // Get existing options and merge with new ones (new options take precedence)
+            const existingOptions = window.wyfWidgets[containerId].options;
+            const mergedOptions = { ...existingOptions, ...options };
+            
+            // Create new widget with merged options
+            const widget = new WaterYourFriends(containerId, mergedOptions);
+            window.wyfWidgets[containerId] = widget;
+            return widget;
+        }
+
         const widget = new WaterYourFriends(containerId, options);
         window.wyfWidgets[containerId] = widget;
         return widget;
     };
-    
-    // Auto-initialize if default container exists
-    if (document.getElementById('water-your-friends-widget')) {
-        window.createWaterYourFriendsWidget('water-your-friends-widget');
-    }
 });
