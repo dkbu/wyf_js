@@ -2,6 +2,105 @@
  * WaterYourFriends Widget
  * A self-contained friend contact management widget
  */
+
+function cleanPhoneNumber(contact) {
+    return contact.replace(/[\s\-\(\)]/g, '');
+}
+
+function matchPhoneNumber(contact) {
+    const cleanPhone = cleanPhoneNumber(contact);
+    return /^[\+]?[1-9][\d]{6,15}$/.test(cleanPhone);
+}
+
+function validatePhoneNumber(contact) {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    const cleanPhone = cleanPhoneNumber(contact);
+    if (!phoneRegex.test(cleanPhone) && cleanPhone.length < 7) {
+        return 'Please enter a valid phone number';
+    }
+
+    return null;
+}
+
+const DEFAULT_CONTACT_TARGET = '_blank';
+
+const DEFAULT_CONTACT_TYPES = {
+    whatsapp: {
+        label: 'WhatsApp',
+        placeholder: 'e.g., +15551234567',
+        buttonClass: 'wyf-btn-info',
+        getAction: (contact) => ({
+            url: `https://wa.me/${cleanPhoneNumber(contact)}`,
+            target: DEFAULT_CONTACT_TARGET
+        }),
+        validate: validatePhoneNumber,
+        matches: matchPhoneNumber
+    },
+    phone: {
+        label: 'Phone',
+        placeholder: 'e.g., +1 (555) 123-4567',
+        buttonClass: 'wyf-btn-info',
+        getAction: (contact) => ({
+            url: `tel:${cleanPhoneNumber(contact)}`,
+            target: DEFAULT_CONTACT_TARGET
+        }),
+        validate: validatePhoneNumber,
+        matches: matchPhoneNumber
+    },
+    facebook: {
+        label: 'Facebook Messenger',
+        placeholder: 'e.g., https://m.me/username or Facebook username',
+        buttonClass: 'wyf-btn-info',
+        getAction: (contact) => ({
+            url: contact.startsWith('http') ? contact : `https://m.me/${contact}`,
+            target: DEFAULT_CONTACT_TARGET
+        }),
+        validate: (contact) => {
+            if (!contact.includes('facebook.com') && !contact.includes('m.me') && contact.length < 3) {
+                return 'Please enter a valid Facebook URL or username';
+            }
+
+            return null;
+        },
+        matches: (contact) => contact.includes('facebook.com') || contact.includes('m.me')
+    },
+    email: {
+        label: 'Email',
+        placeholder: 'e.g., friend@example.com',
+        buttonClass: 'wyf-btn-info',
+        getAction: (contact) => ({
+            url: `mailto:${contact}`,
+            target: DEFAULT_CONTACT_TARGET
+        }),
+        validate: (contact) => {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(contact)) {
+                return 'Please enter a valid email address';
+            }
+
+            return null;
+        },
+        matches: (contact) => contact.includes('@')
+    },
+    discord: {
+        label: 'Discord',
+        placeholder: 'e.g., username#1234 or Discord user ID',
+        buttonClass: 'wyf-btn-secondary',
+        getAction: (contact) => ({
+            url: contact,
+            target: DEFAULT_CONTACT_TARGET
+        }),
+        validate: (contact) => {
+            if (contact.length < 3) {
+                return 'Please enter a valid Discord username or ID';
+            }
+
+            return null;
+        }
+    }
+};
+
 class WaterYourFriends {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
@@ -22,6 +121,7 @@ class WaterYourFriends {
             return;
         }
 
+        this.contactTypes = this.buildContactTypes(this.options.contactTypes);
         this.friends = [];
         this.friendForm = null;
         this.init();
@@ -68,10 +168,7 @@ class WaterYourFriends {
                                 <label for="wyf-contact-type">Contact Type:</label>
                                 <select class="wyf-contact-type" required>
                                     <option value="">Select contact type</option>
-                                    <option value="phone">Phone</option>
-                                    <option value="facebook">Facebook Messenger</option>
-                                    <option value="email">Email</option>
-                                    <option value="discord">Discord</option>
+                                    ${this.renderContactTypeOptions()}
                                 </select>
                             </div>
                             <div class="wyf-form-group">
@@ -98,6 +195,65 @@ class WaterYourFriends {
 
         // Add widget-specific styles
         this.addStyles();
+    }
+
+    buildContactTypes(customContactTypes = {}) {
+        const mergedContactTypes = { ...DEFAULT_CONTACT_TYPES };
+
+        Object.entries(customContactTypes).forEach(([contactType, config]) => {
+            mergedContactTypes[contactType] = {
+                ...(DEFAULT_CONTACT_TYPES[contactType] || {}),
+                ...config
+            };
+        });
+
+        return mergedContactTypes;
+    }
+
+    registerContactType(contactType, config) {
+        this.contactTypes[contactType] = {
+            ...(this.contactTypes[contactType] || {}),
+            ...config
+        };
+        this.refreshContactTypeOptions();
+    }
+
+    renderContactTypeOptions() {
+        return Object.entries(this.contactTypes)
+            .map(([value, config]) => `<option value="${this.escapeHtml(value)}">${this.escapeHtml(config.label)}</option>`)
+            .join('');
+    }
+
+    refreshContactTypeOptions(selectedValue = '') {
+        const select = this.container?.querySelector('.wyf-contact-type');
+
+        if (!select) {
+            return;
+        }
+
+        select.innerHTML = `
+            <option value="">Select contact type</option>
+            ${this.renderContactTypeOptions()}
+        `;
+
+        select.value = this.contactTypes[selectedValue] ? selectedValue : '';
+    }
+
+    getDefaultContactType() {
+        const [firstContactType] = Object.keys(this.contactTypes);
+        return firstContactType || 'phone';
+    }
+
+    getContactTypeConfig(contactType) {
+        return this.contactTypes[contactType] || null;
+    }
+
+    inferContactType(contact) {
+        const entry = Object.entries(this.contactTypes).find(([, config]) =>
+            typeof config.matches === 'function' && config.matches(contact)
+        );
+
+        return entry ? entry[0] : this.getDefaultContactType();
     }
 
     addStyles() {
@@ -452,7 +608,7 @@ class WaterYourFriends {
         const daysSince = this.getDaysSinceContact(lastContactDate);
 
         // Handle different contact types
-        const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || 'phone');
+        const contactDisplay = this.formatContactLink(friend.contact, friend.contactType || this.getDefaultContactType());
 
         // Get the appropriate image based on last contact
         const statusImage = this.getContactStatusImage(daysSince);
@@ -483,34 +639,21 @@ class WaterYourFriends {
     }
 
     formatContactLink(contact, contactType) {
-        const contactTxt = this.escapeHtml(contact);
-        const contactTypeLabel = this.getContactTypeLabel(contactType);
-        switch (contactType) {
-            case 'phone':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('tel:${contactTxt}', '_self')">${contactTypeLabel}</button>`;
-            case 'email':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('mailto:${contactTxt}', '_self')">${contactTypeLabel}</button>`;
-            case 'facebook':
-                if (contact.startsWith('http')) {
-                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
-                } else {
-                    return `<button class="wyf-btn wyf-btn-small wyf-btn-info wyf-contact-btn" onclick="window.open('https://m.me/${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
-                }
-            case 'discord':
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn" onclick="onclick="window.open('${contactTxt}')">${contactTypeLabel}</button>`;
-            default:
-                return `<button class="wyf-btn wyf-btn-small wyf-btn-secondary wyf-contact-btn" onclick="window.open('${contactTxt}', '_blank')">${contactTypeLabel}</button>`;
-        }
+        const config = this.getContactTypeConfig(contactType) || this.getContactTypeConfig(this.getDefaultContactType());
+        const contactTypeLabel = this.escapeHtml(config?.label || 'Unknown');
+        const action = typeof config?.getAction === 'function'
+            ? config.getAction(contact)
+            : { url: contact, target: '_blank' };
+        const buttonClass = config?.buttonClass || 'wyf-btn-secondary';
+        const openCall = `window.open(${JSON.stringify(String(action.url || contact))}, ${JSON.stringify(String(action.target || '_blank'))})`
+            .replace(/"/g, '&quot;');
+
+        return `<button class="wyf-btn wyf-btn-small ${buttonClass} wyf-contact-btn" onclick="${openCall}">${contactTypeLabel}</button>`;
     }
 
     getContactTypeLabel(contactType) {
-        const labels = {
-            phone: 'Phone',
-            facebook: 'Facebook Messenger',
-            email: 'Email',
-            discord: 'Discord'
-        };
-        return labels[contactType] || 'Unknown';
+        const config = this.getContactTypeConfig(contactType);
+        return config?.label || 'Unknown';
     }
 
     getContactStatusImage(daysSince) {
@@ -586,14 +729,7 @@ class WaterYourFriends {
                     // Add backward compatibility - set default contactType for old data
                     data.friends.forEach(friend => {
                         if (!friend.contactType) {
-                            // Try to guess contact type from the contact string
-                            if (friend.contact && friend.contact.includes('@')) {
-                                friend.contactType = 'email';
-                            } else if (friend.contact && (friend.contact.includes('http') || friend.contact.includes('facebook.com') || friend.contact.includes('m.me'))) {
-                                friend.contactType = 'facebook';
-                            } else {
-                                friend.contactType = 'phone'; // Default fallback
-                            }
+                            friend.contactType = this.inferContactType(friend.contact || '');
                         }
                     });
 
@@ -715,14 +851,9 @@ class FriendFormWidget {
     updateContactPlaceholder(contactType) {
         const widget = this.wyfWidget.container.querySelector('.wyf-widget');
         const contactInput = widget.querySelector('.wyf-contact-info');
-        const placeholders = {
-            phone: 'e.g., +1 (555) 123-4567',
-            facebook: 'e.g., https://m.me/username or Facebook username',
-            email: 'e.g., friend@example.com',
-            discord: 'e.g., username#1234 or Discord user ID'
-        };
+        const config = this.wyfWidget.getContactTypeConfig(contactType);
 
-        contactInput.placeholder = placeholders[contactType] || 'Enter contact details';
+        contactInput.placeholder = config?.placeholder || 'Enter contact details';
     }
 
     handleFormSubmit(e) {
@@ -764,42 +895,22 @@ class FriendFormWidget {
     }
 
     validateContact(contactType, contact) {
-        switch (contactType) {
-            case 'phone':
-                // Basic phone number validation
-                const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-                const cleanPhone = contact.replace(/[\s\-\(\)]/g, '');
-                if (!phoneRegex.test(cleanPhone) && cleanPhone.length < 7) {
-                    alert('Please enter a valid phone number');
-                    return false;
-                }
-                break;
+        const config = this.wyfWidget.getContactTypeConfig(contactType);
 
-            case 'email':
-                // Basic email validation
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(contact)) {
-                    alert('Please enter a valid email address');
-                    return false;
-                }
-                break;
-
-            case 'facebook':
-                // Accept URLs or usernames
-                if (!contact.includes('facebook.com') && !contact.includes('m.me') && contact.length < 3) {
-                    alert('Please enter a valid Facebook URL or username');
-                    return false;
-                }
-                break;
-
-            case 'discord':
-                // Accept Discord usernames or user IDs
-                if (contact.length < 3) {
-                    alert('Please enter a valid Discord username or ID');
-                    return false;
-                }
-                break;
+        if (!config) {
+            alert('Please select a supported contact type');
+            return false;
         }
+
+        const validationError = typeof config.validate === 'function'
+            ? config.validate(contact)
+            : null;
+
+        if (validationError) {
+            alert(validationError);
+            return false;
+        }
+
         return true;
     }
 
@@ -834,4 +945,9 @@ document.addEventListener('DOMContentLoaded', function () {
         window.wyfWidgets[containerId] = widget;
         return widget;
     };
+
+    const defaultContainerId = 'water-your-friends-widget';
+    if (document.getElementById(defaultContainerId) && !window.wyfWidgets[defaultContainerId]) {
+        window.createWaterYourFriendsWidget(defaultContainerId);
+    }
 });

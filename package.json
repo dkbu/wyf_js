@@ -1,6 +1,6 @@
 {
   "name": "water-your-friends",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A reusable JavaScript widget for managing friend contacts and tracking communication frequency",
   "main": "water-your-friends-widget.js",
   "scripts": {

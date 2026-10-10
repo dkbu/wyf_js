@@ -118,6 +118,7 @@ console.log(widget.friends);
 - **Email**: Creates clickable `mailto:` links  
 - **Facebook**: Creates links to Messenger or Facebook profiles
 - **Discord**: Advanced. Requires link to the chat with the contact, of the format `https://discord.com/channels/@me/<CHANNEL CODE>`
+- **WhatsApp**: Creates clickable `https://wa.me/` links
 
 ## Browser Support
 
@@ -141,6 +142,34 @@ The following animated icons are used in this application and are created by Fre
 
 This is a simple vanilla JavaScript widget. Contributions welcome!
 
+### Test locally
+
+You can test the widget locally with Python's built-in HTTP server.
+
+1. Make sure Python 3 is installed:
+```bash
+python --version
+```
+
+2. From the project root, start a local server:
+```bash
+python -m http.server 8000
+```
+
+3. Open the demo page in your browser:
+```text
+http://localhost:8000/
+```
+
+4. Stop the server with `Ctrl+C` when you're done.
+
+If you have npm installed, you can use the included shortcut instead:
+
+```bash
+npm start
+```
+
+
 ## Changelog
 
 ### 1.0.0
@@ -149,3 +178,6 @@ This is a simple vanilla JavaScript widget. Contributions welcome!
 - Support for multiple widget instances
 - Auto-initialization feature
 - Complete API for programmatic usage
+
+### 1.0.1
+- Added WhatsApp support
